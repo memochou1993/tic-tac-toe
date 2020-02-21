@@ -2,17 +2,15 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
-class Square extends Component {
-  render() {
-    return (
-      <button
-        className="square"
-        onClick={() => { this.props.onClick() }}
-      >
-        {this.props.value}
-      </button>
-    );
-  }
+const Square = (props) => {
+  return (
+    <button
+      className="square"
+      onClick={props.onClick}
+    >
+      {props.value}
+    </button>
+  );
 }
 
 class Board extends Component {
@@ -21,13 +19,45 @@ class Board extends Component {
 
     this.state = {
       squares: Array(9).fill(null),
+      move: 0,
     };
   }
 
+  judge(squares) {
+    const lines = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6],
+    ];
+
+    for (let i = 0; i < lines.length; i++) {
+      const [a, b, c] = lines[i];
+      if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+        return squares[a];
+      }
+    }
+
+    return null;
+  }
+
   handleClick(i) {
-    const squares = this.state.squares.slice();
-    squares[i] = '❌';
-    this.setState({ squares });
+    const squares = [...this.state.squares];
+
+    if (this.judge(squares) || squares[i]) {
+      return;
+    }
+
+    squares[i] = this.state.move % 2 ? 'X' : 'O'; // computed?
+
+    this.setState({
+      squares,
+      move: this.state.move + 1,
+    });
   }
 
   renderSquare(i) {
@@ -40,7 +70,10 @@ class Board extends Component {
   }
 
   render() {
-    const status = 'Next player: X';
+    const winner = this.judge(this.state.squares);
+    const status = winner
+      ? `Winner: ${winner}`
+      : `Next player: ${this.state.move % 2 ? 'X' : 'O'}`;
 
     return (
       <div>
