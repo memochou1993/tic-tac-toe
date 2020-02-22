@@ -1,22 +1,17 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import Board from './../Board';
 import './style.css';
 
-class Game extends Component {
-  constructor(props) {
-    super(props);
+const Game = () => {
+  const [history, setHistory] = useState([
+    {
+      squares: Array(9).fill(null),
+    },
+  ]);
 
-    this.state = {
-      history: [
-        {
-          squares: Array(9).fill(null),
-        },
-      ],
-      step: 0,
-    };
-  }
+  const [step, setStep] = useState(0);
 
-  judge(squares) {
+  const judge = (squares) => {
     const lines = [
       [0, 1, 2],
       [3, 4, 5],
@@ -38,69 +33,58 @@ class Game extends Component {
     return null;
   }
 
-  handleClick(i) {
-    const history = this.state.history.slice(0, this.state.step + 1);
-    const current = history[history.length - 1];
+  const handleClick = (i) => {
+    const slice = history.slice(0, step + 1);
+    const current = slice[slice.length - 1];
     const squares = [...current.squares];
 
-    if (this.judge(squares) || squares[i]) {
+    if (judge(squares) || squares[i]) {
       return;
     }
 
-    squares[i] = this.state.step % 2 ? 'O' : 'X';
+    squares[i] = step % 2 ? 'O' : 'X';
 
-    this.setState({
-      history: [...history, { squares }],
-      step: history.length,
-    });
+    setHistory([...slice, { squares }]);
+    setStep(slice.length);
   }
 
-  jumpTo(step) {
-    this.setState({
-      step: step,
-    });
-  }
-
-  render() {
-    const history = this.state.history;
-    const current = history[this.state.step];
-    const winner = this.judge(current.squares);
-    const status = winner
-      ? `Winner: ${winner}`
-      : `Next player: ${this.state.step % 2 ? 'O' : 'X'}`;
-    const moves = history.map((move, index) => {
-      return (
-        <li
-          key={index}
-        >
-          <button
-            onClick={() => this.jumpTo(index)}
-          >
-            {`Go to move #${index}`}
-          </button>
-        </li>
-      );
-    });
-
+  const current = history[step];
+  const winner = judge(current.squares);
+  const status = winner
+    ? `Winner: ${winner}`
+    : `Next player: ${step % 2 ? 'O' : 'X'}`;
+  const moves = history.map((move, index) => {
     return (
-      <div className="game">
-        <div className="game-board">
-          <Board
-            squares={current.squares}
-            onClick={(i) => { this.handleClick(i) }}
-          />
-        </div>
-        <div className="game-info">
-          <div>
-            {status}
-          </div>
-          <ol>
-            {moves}
-          </ol>
-        </div>
-      </div>
+      <li
+        key={index}
+      >
+        <button
+          onClick={() => setStep(index)}
+        >
+          {`Go to move #${index}`}
+        </button>
+      </li>
     );
-  }
-}
+  });
+
+  return (
+    <div className="game">
+      <div className="game-board">
+        <Board
+          squares={current.squares}
+          onClick={(i) => { handleClick(i) }}
+        />
+      </div>
+      <div className="game-info">
+        <div>
+          {status}
+        </div>
+        <ol>
+          {moves}
+        </ol>
+      </div>
+    </div>
+  );
+};
 
 export default Game;
